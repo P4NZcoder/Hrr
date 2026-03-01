@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการพนักงานรายวันและเงินเดือน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white; padding: 0; margin: 0; }
+            .print-shadow-none { box-shadow: none !important; border: 1px solid #e5e7eb; }
+            .print-bg-transparent { background: transparent !important; color: black !important; }
+            .print-text-black { color: black !important; }
+            .print-border { border: 1px solid #e5e7eb !important; }
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased pb-24 md:pb-8">
+
+    <!-- Top Navbar -->
+    <header class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-30 no-print">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <h1 class="text-xl font-bold">ระบบจัดการพนักงาน (รายวัน)</h1>
+            </div>
+            <button onclick="clearAllData()" class="text-xs bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                ล้างข้อมูล
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-4 md:p-6">
+
+        <!-- ==================== TAB 1: CALENDAR ==================== -->
+        <section id="tab-calendar" class="tab-content active space-y-6">
+            <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 no-print">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-xl font-bold text-gray-800">ตารางการทำงานรายวัน</h2>
+                    <div class="flex items-center gap-2 bg-gray-50 p-2 rounded-xl">
+                        <button onclick="changeMonth(-1)" class="p-2 bg-white shadow-sm border border-gray-100 hover:bg-gray-100 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                        <span id="currentMonthDisplay" class="text-base md:text-lg font-semibold w-40 text-center text-indigo-700">เดือน ปี</span>
+                        <button onclick="changeMonth(1)" class="p-2 bg-white shadow-sm border border-gray-100 hover:bg-gray-100 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div class="grid grid-cols-7 gap-1 md:gap-3" id="calendarGrid">
+                    <!-- หัวตารางวัน จะถูกสร้างด้วย JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: EMPLOYEES ==================== -->
+        <section id="tab-employees" class="tab-content space-y-6 no-print">
+            <div class="flex flex-col md:flex-row justify-between md:items-center bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        รายชื่อพนักงาน
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">จำนวนพนักงาน: <span id="empCount" class="font-bold text-indigo-600">0</span> คน</p>
+                </div>
+                <button onclick="openEmpForm()" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 font-medium hover:bg-indigo-700 shadow-sm transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 
+                    เพิ่มพนักงาน
+                </button>
+            </div>
+
+            <form id="empForm" onsubmit="saveEmployee(event)" class="hidden bg-white p-6 rounded-2xl shadow-lg border border-indigo-200">
+                <input type="hidden" id="empId">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-3">
+                    <h3 id="empFormTitle" class="font-bold text-lg text-indigo-700">เพิ่มพนักงานใหม่</h3>
+                    <button type="button" onclick="closeEmpForm()" class="text-gray-400 hover:text-red-500 bg-gray-50 p-2 rounded-full transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล / ชื่อเล่น <span class="text-red-500">*</span></label>
+                        <input type="text" id="empName" required class="w-full border border-gray-300 bg-gray-50 rounded-lg p-3 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น สมชาย" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">รหัสพนักงาน/PIN (ตัวเลือก)</label>
+                        <input type="text" id="empPin" class="w-full border border-gray-300 bg-gray-50 rounded-lg p-3 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น 001" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ค่าจ้างต่อวัน (บาท) <span class="text-red-500">*</span></label>
+                        <input type="number" id="empDailyRate" required value="300" class="w-full border border-gray-300 bg-gray-50 rounded-lg p-3 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-indigo-700" />
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end gap-3">
+                    <button type="button" onclick="closeEmpForm()" class="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50">ยกเลิก</button>
+                    <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-medium flex items-center gap-2 hover:bg-indigo-700 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> 
+                        บันทึกข้อมูล
+                    </button>
+                </div>
+            </form>
+
+            <div id="empList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- รายชื่อพนักงานถูกสร้างด้วย JS -->
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: PAYROLL ==================== -->
+        <section id="tab-payroll" class="tab-content space-y-6">
+            <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 print-shadow-none">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 pb-4 border-b border-gray-100 no-print">
+                    <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="14.01"></line><line x1="16" y1="10" x2="16" y2="10.01"></line><line x1="16" y1="18" x2="16" y2="18.01"></line><line x1="12" y1="14" x2="12" y2="14.01"></line><line x1="12" y1="10" x2="12" y2="10.01"></line><line x1="12" y1="18" x2="12" y2="18.01"></line><line x1="8" y1="14" x2="8" y2="14.01"></line><line x1="8" y1="10" x2="8" y2="10.01"></line><line x1="8" y1="18" x2="8" y2="18.01"></line></svg>
+                    </div> 
+                    สรุปเงินเดือน (รายวัน)
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-gray-50 p-5 rounded-xl border border-gray-200 no-print">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">เลือกพนักงาน</label>
+                        <select id="prEmpId" onchange="calculatePayroll()" class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm font-medium text-indigo-700">
+                            <option value="">-- กรุณาเลือกพนักงาน --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">ตั้งแต่วันที่</label>
+                        <input type="date" id="prStartDate" onchange="calculatePayroll()" class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">ถึงวันที่</label>
+                        <input type="date" id="prEndDate" onchange="calculatePayroll()" class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm" />
+                    </div>
+                </div>
+
+                <div id="payrollResult" class="hidden space-y-6">
+                    <!-- Summary Box -->
+                    <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 p-6 md:p-8 rounded-2xl shadow-lg text-white print-bg-transparent print-text-black print-shadow-none border border-indigo-200">
+                        <div class="flex flex-col md:flex-row justify-between md:items-end mb-8 border-b border-indigo-500/50 pb-6 print-border-b-2">
+                            <div>
+                                <h3 class="text-2xl font-bold hidden print:block mb-2 text-black">สลิปเงินเดือน (Pay Slip)</h3>
+                                <p class="text-indigo-200 font-medium print-text-black">ยอดสุทธิที่ต้องจ่าย (Net Pay)</p>
+                                <p class="text-lg mt-1 font-bold">พนักงาน: <span id="resEmpName" class="text-xl"></span></p>
+                                <p class="text-sm text-indigo-200 print-text-black mt-1">รอบบิล: <span id="resDateRange"></span></p>
+                            </div>
+                            <div class="text-right mt-4 md:mt-0">
+                                <p class="text-5xl md:text-6xl font-bold tracking-tight"><span id="resNetPay">0.00</span> <span class="text-2xl font-medium text-indigo-200 print-text-black">บาท</span></p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div class="bg-white/10 p-4 rounded-xl backdrop-blur-sm print-border">
+                                <p class="text-indigo-200 mb-1 text-xs print-text-black">จำนวนวันที่มาทำงาน</p>
+                                <p class="text-2xl font-semibold"><span id="resTotalDays">0</span> <span class="text-base font-normal">วัน</span></p>
+                            </div>
+                            <div class="bg-white/10 p-4 rounded-xl backdrop-blur-sm print-border">
+                                <p class="text-indigo-200 mb-1 text-xs print-text-black">ค่าจ้างรวม (ก่อนหัก)</p>
+                                <p class="text-2xl font-semibold"><span id="resBasePay">0</span> <span class="text-base font-normal">฿</span></p>
+                            </div>
+                            <div class="bg-green-500/20 p-4 rounded-xl border border-green-500/40 backdrop-blur-sm print-border">
+                                <p class="text-green-200 mb-1 text-xs print-text-black">เงินพิเศษ (ทิป/อื่นๆ)</p>
+                                <p class="text-2xl font-semibold text-green-300 print-text-black">+<span id="resTotalAdd">0</span> <span class="text-base font-normal">฿</span></p>
+                            </div>
+                            <div class="bg-red-500/20 p-4 rounded-xl border border-red-500/40 backdrop-blur-sm print-border">
+                                <p class="text-red-200 mb-1 text-xs print-text-black">หักเงินรวมทั้งหมด</p>
+                                <p class="text-2xl font-semibold text-red-300 print-text-black">-<span id="resTotalDeduct">0</span> <span class="text-base font-normal">฿</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-green-50 p-5 rounded-2xl shadow-sm border border-green-200 no-print flex items-center gap-4">
+                        <div class="p-3 bg-green-100 text-green-700 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-green-800 text-sm mb-1">เพิ่มเงินพิเศษท้ายสัปดาห์ / ทิปรวม</h4>
+                            <input type="text" id="prAddDesc" placeholder="ระบุรายละเอียดเงินพิเศษ" class="w-full text-sm bg-white border border-green-300 rounded-lg p-2 outline-none mb-2" />
+                        </div>
+                        <div>
+                            <label class="text-xs text-green-700 font-bold block mb-1">จำนวนเงิน (฿)</label>
+                            <input type="number" id="prAddAmt" value="0" oninput="calculatePayroll()" class="w-28 text-right font-bold text-green-800 p-2.5 border border-green-400 rounded-lg bg-white outline-none focus:ring-2 focus:ring-green-500" />
+                        </div>
+                    </div>
+
+                    <!-- Detailed Table -->
+                    <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+                        <div class="bg-gray-50 px-5 py-4 border-b border-gray-200 print-bg-transparent">
+                            <h3 class="font-bold text-gray-800">รายละเอียดบันทึกรายวัน</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-white text-gray-500 border-b border-gray-100 print-border-b-2">
+                                    <tr>
+                                        <th class="p-4 font-semibold">วันที่</th>
+                                        <th class="p-4 font-semibold">สถานะ</th>
+                                        <th class="p-4 font-semibold">เวลาเข้า-ออก</th>
+                                        <th class="p-4 font-semibold text-right">ค่าแรงวัน</th>
+                                        <th class="p-4 font-semibold text-right text-red-600">หักเงิน</th>
+                                        <th class="p-4 font-semibold text-right">สุทธิรายวัน (฿)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payrollTableBody" class="divide-y divide-gray-100">
+                                    <!-- ข้อมูลรายวันถูกสร้างด้วย JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-5 bg-gray-50 border-t border-gray-200 flex justify-end no-print">
+                            <button onclick="window.print()" class="bg-gray-800 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 hover:bg-gray-900 shadow-md font-medium transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                พิมพ์สลิปเงินเดือน
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="payrollEmptyState" class="py-16 text-center text-gray-400 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50 no-print">
+                    <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="14.01"></line><line x1="16" y1="10" x2="16" y2="10.01"></line><line x1="16" y1="18" x2="16" y2="18.01"></line><line x1="12" y1="14" x2="12" y2="14.01"></line><line x1="12" y1="10" x2="12" y2="10.01"></line><line x1="12" y1="18" x2="12" y2="18.01"></line><line x1="8" y1="14" x2="8" y2="14.01"></line><line x1="8" y1="10" x2="8" y2="10.01"></line><line x1="8" y1="18" x2="8" y2="18.01"></line></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-600 mb-1">กรุณาเลือกชื่อพนักงาน</h3>
+                    <p class="text-sm">เพื่อดึงข้อมูลเวลาทำงานมาคำนวณเงินเดือน</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal จัดการกะงานรายวัน -->
+    <div id="dayModal" class="fixed inset-0 bg-black/60 items-center justify-center p-4 z-50 backdrop-blur-sm hidden overflow-y-auto no-print">
+        <div class="bg-white rounded-2xl p-4 md:p-6 max-w-4xl w-full my-8 shadow-2xl m-auto">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+                <h3 class="text-lg md:text-xl font-bold text-indigo-800 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    ลงเวลาและหักเงิน: <span id="modalDateDisplay" class="text-gray-700"></span>
+                </h3>
+                <button onclick="closeDayModal()" class="p-2 bg-gray-100 rounded-full hover:bg-red-50 hover:text-red-600 text-gray-500 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+
+            <!-- Header for desktop view -->
+            <div class="hidden md:flex gap-4 text-xs font-bold text-gray-500 mb-2 px-4 uppercase tracking-wider">
+                <div class="w-1/4">พนักงาน</div>
+                <div class="w-1/5">สถานะ</div>
+                <div class="w-1/4 flex gap-2"><span class="w-1/2">เวลาเข้า</span><span class="w-1/2">เวลาออก</span></div>
+                <div class="w-auto flex-1 text-red-600 text-right">รายการหักเงินรายวัน (฿)</div>
+            </div>
+
+            <div id="modalEmpList" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                <!-- ข้อมูลพนักงานถูกสร้างด้วย JS -->
+            </div>
+
+            <div class="mt-8 pt-4 border-t border-gray-100 flex gap-3">
+                <button onclick="closeDayModal()" class="flex-1 py-3.5 bg-white border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50">ยกเลิก</button>
+                <button onclick="saveDaySchedule()" class="flex-[2] py-3.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 flex justify-center items-center gap-2 shadow-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> 
+                    บันทึกข้อมูลประจำวัน
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:relative md:border-none md:shadow-none md:bg-transparent md:max-w-5xl md:mx-auto md:pb-8 z-20 no-print">
+        <div class="flex justify-around md:justify-center md:gap-4 p-2 md:p-0">
+            <button onclick="switchTab('calendar')" id="btn-tab-calendar" class="nav-btn text-indigo-600 md:bg-indigo-600 md:text-white flex flex-col md:flex-row items-center gap-1 md:gap-2 p-2 md:px-6 md:py-3 rounded-xl transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="md:w-5 md:h-5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span class="text-[10px] md:text-sm font-medium">ตารางกะงาน</span>
+            </button>
+            <button onclick="switchTab('employees')" id="btn-tab-employees" class="nav-btn text-gray-500 hover:text-indigo-500 md:hover:bg-indigo-50 flex flex-col md:flex-row items-center gap-1 md:gap-2 p-2 md:px-6 md:py-3 rounded-xl transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="md:w-5 md:h-5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span class="text-[10px] md:text-sm font-medium">พนักงาน</span>
+            </button>
+            <button onclick="switchTab('payroll')" id="btn-tab-payroll" class="nav-btn text-gray-500 hover:text-indigo-500 md:hover:bg-indigo-50 flex flex-col md:flex-row items-center gap-1 md:gap-2 p-2 md:px-6 md:py-3 rounded-xl transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="md:w-5 md:h-5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span class="text-[10px] md:text-sm font-medium">สรุปเงินเดือน</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        // --- DATA MANAGEMENT (localStorage) ---
+        let employees = JSON.parse(localStorage.getItem('rp_daily_emps')) || [];
+        let attendance = JSON.parse(localStorage.getItem('rp_daily_att')) || {}; 
+        
+        // Default Time
+        const DEFAULT_TIME_IN = "15:30";
+        const DEFAULT_TIME_OUT = "22:00";
+
+        function saveData() {
+            localStorage.setItem('rp_daily_emps', JSON.stringify(employees));
+            localStorage.setItem('rp_daily_att', JSON.stringify(attendance));
+        }
+
+        function clearAllData() {
+            if(confirm('คำเตือน: ข้อมูลพนักงานและการลงเวลาทั้งหมดจะถูกลบอย่างถาวร ยืนยันหรือไม่?')){
+                localStorage.removeItem('rp_daily_emps');
+                localStorage.removeItem('rp_daily_att');
+                employees = [];
+                attendance = {};
+                switchTab('calendar');
+                alert('ล้างข้อมูลเรียบร้อยแล้ว');
+            }
+        }
+
+        // --- NAVIGATION ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn text-gray-500 hover:text-indigo-500 md:hover:bg-indigo-50 flex flex-col md:flex-row items-center gap-1 md:gap-2 p-2 md:px-6 md:py-3 rounded-xl transition-all";
+            });
+            
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            let activeBtn = document.getElementById(`btn-tab-${tabId}`);
+            activeBtn.className = "nav-btn text-indigo-600 md:bg-indigo-600 md:text-white flex flex-col md:flex-row items-center gap-1 md:gap-2 p-2 md:px-6 md:py-3 rounded-xl transition-all";
+
+            if (tabId === 'calendar') renderCalendar();
+            if (tabId === 'employees') renderEmployees();
+            if (tabId === 'payroll') updatePayrollSelects();
+        }
+
+        // --- CALENDAR LOGIC ---
+        let currentDate = new Date();
+        const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+        const dayNames = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
+
+        function changeMonth(step) {
+            currentDate.setMonth(currentDate.getMonth() + step);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            document.getElementById('currentMonthDisplay').innerText = `${monthNames[month]} ${year + 543}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            let html = '';
+            // Headers
+            dayNames.forEach(d => { html += `<div class="text-center font-bold text-gray-400 text-xs md:text-sm py-2">${d}</div>`; });
+            
+            // Blank cells
+            for (let i = 0; i < firstDay; i++) { html += `<div class="p-2 border border-transparent rounded-lg"></div>`; }
+
+            // Days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isToday = dateStr === todayStr;
+                
+                let workingCount = 0;
+                let deductCount = 0;
+                let leaveCount = 0;
+                
+                if (attendance[dateStr]) {
+                    Object.values(attendance[dateStr]).forEach(record => {
+                        if (record.status === 'work') {
+                            workingCount++;
+                            if (record.deductAmt > 0) deductCount++;
+                        }
+                        if (record.status === 'leave') leaveCount++;
+                    });
+                }
+
+                let badgeHtml = '';
+                if (workingCount > 0) badgeHtml += `<span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">ทำงาน ${workingCount}</span>`;
+                if (deductCount > 0) badgeHtml += `<span class="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold">หัก ${deductCount}</span>`;
+                if (leaveCount > 0) badgeHtml += `<span class="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded font-bold">ลา ${leaveCount}</span>`;
+
+                html += `
+                    <button onclick="openDayModal('${dateStr}')" class="flex flex-col items-center p-2 md:p-3 rounded-xl border transition-all min-h-[80px] md:min-h-[100px] ${isToday ? 'border-indigo-500 bg-indigo-50 shadow-md ring-1 ring-indigo-500' : 'border-gray-200 bg-white hover:border-indigo-300 hover:shadow-sm'}">
+                        <span class="text-sm md:text-lg font-bold ${isToday ? 'text-indigo-700' : 'text-gray-700'}">${day}</span>
+                        <div class="mt-1 flex flex-col gap-1 w-full items-center">${badgeHtml}</div>
+                    </button>
+                `;
+            }
+
+            document.getElementById('calendarGrid').innerHTML = html;
+        }
+
+        // --- DAY MODAL LOGIC (รายวัน & หักเงิน) ---
+        let currentModalDate = '';
+
+        function openDayModal(dateStr) {
+            if (employees.length === 0) {
+                alert('กรุณาเพิ่มรายชื่อพนักงานก่อนตั้งค่ากะงาน');
+                switchTab('employees');
+                return;
+            }
+
+            currentModalDate = dateStr;
+            const d = new Date(dateStr);
+            document.getElementById('modalDateDisplay').innerText = d.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            
+            const dayData = attendance[dateStr] || {};
+            let html = '';
+            
+            employees.forEach(emp => {
+                // Default data for new entry
+                const data = dayData[emp.id] || { 
+                    status: 'work', 
+                    timeIn: DEFAULT_TIME_IN, 
+                    timeOut: DEFAULT_TIME_OUT, 
+                    deductAmt: 0,
+                    deductDesc: ''
+                };
+                const isWork = data.status === 'work';
+
+                html += `
+                <div class="border rounded-xl p-3 md:p-4 transition-all ${isWork ? 'border-indigo-200 bg-white shadow-sm' : 'border-gray-200 bg-gray-50 opacity-70'}">
+                    <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+                        
+                        <!-- ชื่อพนักงาน -->
+                        <div class="md:w-1/4">
+                            <p class="font-bold text-base text-gray-800">${emp.name}</p>
+                            <p class="text-xs text-indigo-600 font-medium">ค่าจ้าง: ${emp.dailyRate} ฿/วัน</p>
+                        </div>
+                        
+                        <!-- สถานะ -->
+                        <div class="md:w-1/5">
+                            <select id="status_${emp.id}" onchange="toggleInputs('${emp.id}')" class="w-full p-2 border border-gray-300 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 ${isWork ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-white'}">
+                                <option value="work" ${data.status === 'work' ? 'selected' : ''}>✅ มาทำงาน</option>
+                                <option value="off" ${data.status === 'off' ? 'selected' : ''}>⏸️ วันหยุด</option>
+                                <option value="leave" ${data.status === 'leave' ? 'selected' : ''}>❌ ลางาน</option>
+                            </select>
+                        </div>
+
+                        <!-- เวลาเข้า-ออก -->
+                        <div class="flex gap-2 md:w-1/4">
+                            <div class="w-1/2">
+                                <label class="text-[10px] text-gray-500 block mb-0.5 md:hidden">เวลาเข้า</label>
+                                <input type="time" id="in_${emp.id}" value="${data.timeIn}" ${!isWork ? 'disabled' : ''} class="w-full p-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-200 outline-none">
+                            </div>
+                            <div class="w-1/2">
+                                <label class="text-[10px] text-gray-500 block mb-0.5 md:hidden">เวลาออก</label>
+                                <input type="time" id="out_${emp.id}" value="${data.timeOut}" ${!isWork ? 'disabled' : ''} class="w-full p-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-200 outline-none">
+                            </div>
+                        </div>
+                        
+                        <!-- การหักเงิน -->
+                        <div class="flex-1 bg-red-50/50 p-2 rounded-lg border border-red-100 flex gap-2 items-center">
+                            <div class="flex-1">
+                                <label class="text-[10px] text-red-500 font-bold block mb-0.5 md:hidden">เหตุผลที่หัก</label>
+                                <input type="text" id="desc_${emp.id}" value="${data.deductDesc}" placeholder="เช่น มาสาย, ของพัง" ${!isWork ? 'disabled' : ''} class="w-full p-1.5 text-xs border border-red-200 rounded bg-white disabled:bg-gray-100 outline-none focus:border-red-400">
+                            </div>
+                            <div class="w-20">
+                                <label class="text-[10px] text-red-500 font-bold block mb-0.5 md:hidden">หักเงิน (฿)</label>
+                                <input type="number" id="deduct_${emp.id}" value="${data.deductAmt}" min="0" ${!isWork ? 'disabled' : ''} class="w-full p-1.5 text-sm font-bold text-red-600 text-right border border-red-300 rounded bg-white disabled:bg-gray-100 outline-none focus:ring-1 focus:ring-red-500">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById('modalEmpList').innerHTML = html;
+            document.getElementById('dayModal').style.display = 'flex';
+        }
+
+        function toggleInputs(empId) {
+            const status = document.getElementById(`status_${empId}`).value;
+            const isWork = status === 'work';
+            
+            document.getElementById(`in_${empId}`).disabled = !isWork;
+            document.getElementById(`out_${empId}`).disabled = !isWork;
+            document.getElementById(`deduct_${empId}`).disabled = !isWork;
+            document.getElementById(`desc_${empId}`).disabled = !isWork;
+            
+            // เคลียร์ยอดหักถ้าไม่ได้มาทำงาน
+            if(!isWork) {
+                document.getElementById(`deduct_${empId}`).value = 0;
+                document.getElementById(`desc_${empId}`).value = '';
+            }
+
+            // Style Update
+            const select = document.getElementById(`status_${empId}`);
+            const parent = select.closest('.border');
+            if (isWork) {
+                parent.className = "border rounded-xl p-3 md:p-4 transition-all border-indigo-200 bg-white shadow-sm";
+                select.className = "w-full p-2 border rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 bg-indigo-50 text-indigo-700 border-indigo-200";
+            } else {
+                parent.className = "border rounded-xl p-3 md:p-4 transition-all border-gray-200 bg-gray-50 opacity-70";
+                select.className = "w-full p-2 border rounded-lg text-sm font-bold outline-none bg-white border-gray-300 text-gray-700";
+            }
+        }
+
+        function closeDayModal() {
+            document.getElementById('dayModal').style.display = 'none';
+        }
+
+        function saveDaySchedule() {
+            const dayData = {};
+            employees.forEach(emp => {
+                dayData[emp.id] = {
+                    status: document.getElementById(`status_${emp.id}`).value,
+                    timeIn: document.getElementById(`in_${emp.id}`).value,
+                    timeOut: document.getElementById(`out_${emp.id}`).value,
+                    deductAmt: Number(document.getElementById(`deduct_${emp.id}`).value) || 0,
+                    deductDesc: document.getElementById(`desc_${emp.id}`).value || ''
+                };
+            });
+            
+            attendance[currentModalDate] = dayData;
+            saveData();
+            renderCalendar();
+            closeDayModal();
+        }
+
+        // --- EMPLOYEES LOGIC ---
+        function renderEmployees() {
+            document.getElementById('empCount').innerText = employees.length;
+            const list = document.getElementById('empList');
+            
+            if (employees.length === 0) {
+                list.innerHTML = `
+                <div class="col-span-full py-16 text-center bg-white rounded-2xl border-2 border-dashed border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-700 mb-1">ยังไม่มีข้อมูลพนักงาน</h3>
+                    <p class="text-gray-500">กดปุ่ม "เพิ่มพนักงาน" ด้านบนเพื่อเริ่มต้นใช้งาน</p>
+                </div>`;
+                return;
+            }
+
+            let html = '';
+            employees.forEach(emp => {
+                html += `
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col hover:border-indigo-300 transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold text-xl">
+                                ${emp.name.charAt(0)}
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-800 text-lg">${emp.name}</h3>
+                                ${emp.pin ? `<p class="text-xs text-gray-500 mt-0.5">PIN: ${emp.pin}</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-indigo-50/50 p-4 rounded-xl mb-4 flex-1 border border-indigo-50 flex justify-between items-center">
+                        <span class="text-sm text-gray-600 font-medium">ค่าจ้างรายวัน:</span>
+                        <span class="font-bold text-indigo-700 text-lg">${emp.dailyRate} ฿</span>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="editEmployee('${emp.id}')" class="flex-1 py-2 text-gray-600 bg-gray-100 rounded-lg text-sm font-semibold hover:bg-gray-200">แก้ไข</button>
+                        <button onclick="deleteEmployee('${emp.id}')" class="flex-1 py-2 text-red-600 bg-red-50 rounded-lg text-sm font-semibold hover:bg-red-100">ลบ</button>
+                    </div>
+                </div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        function openEmpForm() {
+            document.getElementById('empForm').reset();
+            document.getElementById('empId').value = '';
+            document.getElementById('empDailyRate').value = '300';
+            document.getElementById('empFormTitle').innerText = 'เพิ่มพนักงานใหม่';
+            document.getElementById('empForm').classList.remove('hidden');
+        }
+
+        function closeEmpForm() {
+            document.getElementById('empForm').classList.add('hidden');
+        }
+
+        function saveEmployee(e) {
+            e.preventDefault();
+            const id = document.getElementById('empId').value || 'emp_' + Date.now();
+            const name = document.getElementById('empName').value;
+            const pin = document.getElementById('empPin').value;
+            const dailyRate = Number(document.getElementById('empDailyRate').value);
+
+            const existingIndex = employees.findIndex(emp => emp.id === id);
+            const newEmp = { id, name, pin, dailyRate };
+
+            if (existingIndex >= 0) {
+                employees[existingIndex] = newEmp;
+            } else {
+                employees.push(newEmp);
+            }
+
+            saveData();
+            closeEmpForm();
+            renderEmployees();
+            updatePayrollSelects();
+        }
+
+        function editEmployee(id) {
+            const emp = employees.find(e => e.id === id);
+            if (emp) {
+                document.getElementById('empId').value = emp.id;
+                document.getElementById('empName').value = emp.name;
+                document.getElementById('empPin').value = emp.pin || '';
+                document.getElementById('empDailyRate').value = emp.dailyRate;
+                document.getElementById('empFormTitle').innerText = 'แก้ไขข้อมูลพนักงาน';
+                document.getElementById('empForm').classList.remove('hidden');
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function deleteEmployee(id) {
+            if (confirm('ยืนยันการลบพนักงาน? (ข้อมูลกะงานเก่าจะไม่ถูกลบจากประวัติ)')) {
+                employees = employees.filter(e => e.id !== id);
+                saveData();
+                renderEmployees();
+                updatePayrollSelects();
+            }
+        }
+
+        // --- PAYROLL LOGIC (คิดรายวัน หักรายวัน) ---
+        // ตั้งค่าวันที่เริ่มต้นเมื่อโหลด เป็นวันจันทร์-อาทิตย์ ที่ผ่านมา
+        const today = new Date();
+        const lastWeek = new Date(today); lastWeek.setDate(today.getDate() - 6);
+        document.getElementById('prStartDate').value = lastWeek.toISOString().split('T')[0];
+        document.getElementById('prEndDate').value = today.toISOString().split('T')[0];
+
+        function updatePayrollSelects() {
+            const select = document.getElementById('prEmpId');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">-- กรุณาเลือกพนักงาน --</option>';
+            employees.forEach(emp => {
+                select.innerHTML += `<option value="${emp.id}">${emp.name} (เรท ${emp.dailyRate}฿/วัน)</option>`;
+            });
+            if (employees.find(e => e.id === currentVal)) select.value = currentVal;
+            calculatePayroll();
+        }
+
+        function calculatePayroll() {
+            const empId = document.getElementById('prEmpId').value;
+            const startDate = document.getElementById('prStartDate').value;
+            const endDate = document.getElementById('prEndDate').value;
+
+            if (!empId || !startDate || !endDate) {
+                document.getElementById('payrollResult').classList.add('hidden');
+                document.getElementById('payrollEmptyState').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('payrollEmptyState').classList.add('hidden');
+            document.getElementById('payrollResult').classList.remove('hidden');
+
+            const emp = employees.find(e => e.id === empId);
+            document.getElementById('resEmpName').innerText = emp.name;
+            document.getElementById('resDateRange').innerText = `${new Date(startDate).toLocaleDateString('th-TH')} - ${new Date(endDate).toLocaleDateString('th-TH')}`;
+
+            let totalDays = 0;
+            let totalBasePay = 0;
+            let totalDailyDeduct = 0;
+            let detailsHtml = '';
+
+            let currentDate = new Date(startDate);
+            const end = new Date(endDate);
+            let hasRecord = false;
+
+            while (currentDate <= end) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const dayData = attendance[dateStr] ? attendance[dateStr][empId] : null;
+
+                if (dayData && dayData.status !== 'off') { // ข้ามวันหยุด
+                    hasRecord = true;
+                    
+                    let isWork = dayData.status === 'work';
+                    let dailyPay = 0;
+                    let deduct = 0;
+                    let deductText = '-';
+
+                    if (isWork) {
+                        totalDays++;
+                        dailyPay = emp.dailyRate;
+                        deduct = dayData.deductAmt || 0;
+                        totalBasePay += dailyPay;
+                        totalDailyDeduct += deduct;
+                        
+                        if(deduct > 0) {
+                            deductText = `<span class="text-xs text-gray-500 block leading-tight">${dayData.deductDesc || 'หักเงิน'}</span>${deduct.toLocaleString()} ฿`;
+                        }
+                    }
+
+                    const netDaily = isWork ? (dailyPay - deduct) : 0;
+
+                    let statusBadge = '';
+                    if (isWork) statusBadge = '<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">ทำงาน</span>';
+                    else statusBadge = '<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded text-xs font-bold">ลางาน</span>';
+
+                    detailsHtml += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-4 font-medium text-gray-700">${new Date(dateStr).toLocaleDateString('th-TH', {weekday: 'short', day: '2-digit', month: 'short'})}</td>
+                            <td class="p-4">${statusBadge}</td>
+                            <td class="p-4 text-gray-600 font-mono text-xs">${isWork ? `${dayData.timeIn} - ${dayData.timeOut}` : '-'}</td>
+                            <td class="p-4 text-right font-medium text-gray-700">${isWork ? emp.dailyRate.toLocaleString() : '-'}</td>
+                            <td class="p-4 text-right font-bold text-red-500">${deductText}</td>
+                            <td class="p-4 text-right font-bold text-indigo-700">${isWork ? netDaily.toLocaleString(undefined, {minimumFractionDigits: 2}) : '-'}</td>
+                        </tr>
+                    `;
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            if (!hasRecord) {
+                detailsHtml = `<tr><td colspan="6" class="p-8 text-center text-gray-400 bg-gray-50">ไม่มีบันทึกข้อมูลการเข้างานในช่วงเวลานี้</td></tr>`;
+            }
+
+            // รับค่าเงินเพิ่มท้ายสัปดาห์
+            const extraAdditions = Number(document.getElementById('prAddAmt').value) || 0;
+            const finalNetPay = totalBasePay + extraAdditions - totalDailyDeduct;
+
+            // แสดงผลสรุป
+            document.getElementById('resTotalDays').innerText = totalDays;
+            document.getElementById('resBasePay').innerText = totalBasePay.toLocaleString();
+            document.getElementById('resTotalAdd').innerText = extraAdditions.toLocaleString();
+            document.getElementById('resTotalDeduct').innerText = totalDailyDeduct.toLocaleString();
+            document.getElementById('resNetPay').innerText = Math.max(0, finalNetPay).toLocaleString(undefined, {minimumFractionDigits: 2});
+            
+            document.getElementById('payrollTableBody').innerHTML = detailsHtml;
+        }
+
+        // Initialize App
+        renderCalendar();
+        renderEmployees();
+        updatePayrollSelects();
+
+    </script>
+</body>
+</html>
+
